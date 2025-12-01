@@ -3,7 +3,8 @@ package com.example.appfinanzas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appfinanzas.model.Transaction
-import com.example.appfinanzas.repository.FakeTransactionRepository
+import com.example.appfinanzas.network.RetrofitClient
+import com.example.appfinanzas.repository.NetworkTransactionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,7 +16,7 @@ data class TransactionsUiState(
 )
 
 class TransactionsViewModel : ViewModel() {
-    private val repository = FakeTransactionRepository
+    private val repository = NetworkTransactionRepository(RetrofitClient.api)
 
     private val _uiState = MutableStateFlow(TransactionsUiState())
     val uiState = _uiState.asStateFlow()

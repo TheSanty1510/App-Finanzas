@@ -1,5 +1,12 @@
 package com.example.appfinanzas.viewmodel
 
+import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import com.example.appfinanzas.model.Transaction
+import com.example.appfinanzas.model.TransactionType
+import java.time.LocalDate
+import com.example.appfinanzas.network.RetrofitClient
+import com.example.appfinanzas.repository.NetworkTransactionRepository
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,9 +19,27 @@ data class NewTransactionUiState(
 )
 
 class NewTransactionViewModel : ViewModel() {
-
+    private val repository = NetworkTransactionRepository(RetrofitClient.api)
     private val _uiState = MutableStateFlow(NewTransactionUiState())
     val uiState = _uiState.asStateFlow()
+
+    fun saveTransaction() {
+        val currentState = _uiState.value
+    val newTransaction = Transaction(
+        id = "", // La API/DB generará el ID, puedes mandar vacío o null
+        detail = currentState.categoria,
+        description = currentState.descripcion,
+        amount = currentState.monto.toDoubleOrNull() ?: 0.0,
+        type = TransactionType.EXPENSE // OJO: Debes pasar el tipo correcto desde la UI
+    )
+
+    viewModelScope.launch {
+        repository.saveTransaction(newTransaction)
+        // Limpiar estado UI
+        _uiState.value = NewTransactionUiState()
+        }
+    }
+
 
     fun onMontoChanged(monto: String) {
         _uiState.update { it.copy(monto = monto) }
@@ -28,10 +53,4 @@ class NewTransactionViewModel : ViewModel() {
         _uiState.update { it.copy(categoria = categoria) }
     }
 
-    fun saveTransaction() {
-        // Aquí iría la lógica para guardar en el repositorio
-        // Por ahora, solo limpiamos el estado
-        println("Guardando: ${uiState.value}")
-        _uiState.value = NewTransactionUiState()
-    }
 }
